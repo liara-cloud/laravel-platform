@@ -4,7 +4,7 @@ FROM php:7.1-fpm
 
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
-# Install "nginx", "git", "curl", "libmemcached-dev", "libpq-dev", "libjpeg-dev",
+# Install "nginx", "git", "curl", "supervisor", "libmemcached-dev", "libpq-dev", "libjpeg-dev",
 #         "libpng12-dev", "libfreetype6-dev", "libssl-dev", "libmcrypt-dev",
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
@@ -70,9 +70,11 @@ RUN usermod -u 1000 www-data
 
 WORKDIR /var/www
 
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
 ONBUILD COPY . /var/www
 
-ONBUILD RUN composer install && \
+ONBUILD RUN composer install --no-dev --optimize-autoloader && \
  chgrp -R www-data storage bootstrap/cache && \
  chmod -R ug+rwx storage bootstrap/cache
 
