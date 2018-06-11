@@ -74,7 +74,7 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 
 ONBUILD COPY . /var/www
 
-ONBUILD RUN composer install --no-dev --optimize-autoloader && \
+ONBUILD RUN composer install --no-dev --prefer-dist --optimize-autoloader && \
  chgrp -R www-data storage bootstrap/cache && \
  chmod -R ug+rwx storage bootstrap/cache
 
