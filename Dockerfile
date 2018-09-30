@@ -1,17 +1,13 @@
-FROM composer:1.6 as composer
+FROM composer:1.7 as composer
 
-FROM php:7.1-fpm
+FROM php:7.2-apache
 
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
-# Install "nginx", "git", "curl", "supervisor", "libmemcached-dev", "libpq-dev", "libjpeg-dev",
-#         "libpng12-dev", "libfreetype6-dev", "libssl-dev", "libmcrypt-dev",
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
-    nginx \
     git \
     curl \
-    supervisor \
     libmemcached-dev \
     libz-dev \
     libpq-dev \
@@ -20,17 +16,20 @@ RUN apt-get update \
     libfreetype6-dev \
     libssl-dev \
     libmcrypt-dev \
+    gnupg \
+  && curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+  && apt-get install -y nodejs \
   && rm -rf /var/lib/apt/lists/*
 
 # Install the PHP mcrypt extention
-RUN docker-php-ext-install mcrypt \
+RUN pecl install mcrypt-1.0.1 && \
+  docker-php-ext-enable mcrypt \
   # Install the PHP pdo_mysql extention
   && docker-php-ext-install pdo_mysql \
   # Install the PHP pdo_pgsql extention
   && docker-php-ext-install pdo_pgsql \
   # Install the PHP gd library
   && docker-php-ext-configure gd \
-    --enable-gd-native-ttf \
     --with-jpeg-dir=/usr/lib \
     --with-freetype-dir=/usr/include/freetype2 && \
     docker-php-ext-install gd
@@ -50,38 +49,37 @@ RUN if [ ${INSTALL_ZIP_ARCHIVE} = true ]; then \
     docker-php-ext-install zip \
 ;fi
 
-#
-#--------------------------------------------------------------------------
-# Final Touch
-#--------------------------------------------------------------------------
-#
-
-COPY ./laravel.ini /usr/local/etc/php/conf.d
-COPY ./xlaravel.pool.conf /usr/local/etc/php-fpm.d/
-
-USER root
 
 # Clean up
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
     rm /var/log/lastlog /var/log/faillog
 
-RUN usermod -u 1000 www-data
 
-WORKDIR /var/www
+# Put apache and php.ini configs for Laravel
+COPY ./php.ini /usr/local/etc/php/php.ini
+COPY apache2-laravel.conf /etc/apache2/sites-available/laravel.conf
+RUN a2dissite 000-default.conf && a2ensite laravel.conf && a2enmod rewrite
+
+# Change uid and gid of apache to docker user uid/gid
+RUN usermod -u 1000 www-data && groupmod -g 1000 www-data
+
+WORKDIR /var/www/html
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
-ONBUILD COPY . /var/www
+ONBUILD COPY . .
 
+# Install composer dependencies
 ONBUILD RUN composer install --no-dev --prefer-dist --optimize-autoloader && \
  chgrp -R www-data storage bootstrap/cache && \
  chmod -R ug+rwx storage bootstrap/cache
 
-COPY nginx.conf /etc/nginx/
-COPY sites/* /etc/nginx/sites-available/
+ONBUILD RUN npm install && npm run production
 
-COPY ./supervisord.conf /etc/supervisord.conf
-CMD supervisord -n -c /etc/supervisord.conf
+HEALTHCHECK --interval=5m --timeout=3s \
+  CMD curl -f http://localhost/ || exit 1
+
+ENV APP_LOG=errorlog
 
 EXPOSE 80
