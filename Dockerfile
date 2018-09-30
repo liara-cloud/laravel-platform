@@ -73,7 +73,7 @@ ONBUILD COPY . .
 
 # Install composer dependencies
 ONBUILD RUN chgrp -R www-data storage bootstrap/cache \
- && chmod -R ug+rwx storage bootstrap/cache
+ && chmod -R ug+rwx storage bootstrap/cache \
  && composer install --no-dev --prefer-dist --optimize-autoloader
 
 # Install NPM dependencies and build assets
