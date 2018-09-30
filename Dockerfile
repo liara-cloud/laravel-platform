@@ -8,6 +8,7 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     git \
     curl \
+    unzip \
     libmemcached-dev \
     libz-dev \
     libpq-dev \
@@ -71,10 +72,11 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 ONBUILD COPY . .
 
 # Install composer dependencies
-ONBUILD RUN composer install --no-dev --prefer-dist --optimize-autoloader && \
- chgrp -R www-data storage bootstrap/cache && \
- chmod -R ug+rwx storage bootstrap/cache
+ONBUILD RUN chgrp -R www-data storage bootstrap/cache \
+ && chmod -R ug+rwx storage bootstrap/cache
+ && composer install --no-dev --prefer-dist --optimize-autoloader
 
+# Install NPM dependencies and build assets
 ONBUILD RUN npm install && npm run production
 
 HEALTHCHECK --interval=5m --timeout=3s \
