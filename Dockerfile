@@ -72,7 +72,8 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 ONBUILD COPY . .
 
 # Install composer dependencies
-ONBUILD RUN chgrp -R www-data storage bootstrap/cache \
+ONBUILD RUN mkdir -p bootstrap/cache \
+ && chgrp -R www-data storage bootstrap/cache \
  && chmod -R ug+rwx storage bootstrap/cache \
  && composer install --no-dev --prefer-dist --optimize-autoloader
 
