@@ -80,7 +80,7 @@ ONBUILD RUN chgrp -R www-data storage bootstrap/cache \
 ONBUILD RUN npm install && npm run production
 
 HEALTHCHECK --interval=5m --timeout=3s \
-  CMD curl -f http://localhost/ || exit 1
+  CMD curl -s http://localhost > /dev/null || exit 1
 
 ENV APP_LOG=errorlog
 
