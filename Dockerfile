@@ -75,7 +75,7 @@ ONBUILD COPY . .
 ONBUILD RUN mkdir -p bootstrap/cache \
  && chgrp -R www-data storage bootstrap/cache \
  && chmod -R ug+rwx storage bootstrap/cache \
- && composer install --no-dev --prefer-dist --optimize-autoloader
+ && composer install --no-dev --prefer-dist --optimize-autoloader --ansi
 
 # Install NPM dependencies and build assets
 ONBUILD RUN npm install && npm run production
