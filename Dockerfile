@@ -1,88 +1,32 @@
-FROM composer:1.7 as composer
+FROM thecodingmachine/php:7.2-v2-apache-node8
 
-FROM php:7.2-apache
+ENV APACHE_RUN_USER=www-data \
+    APACHE_RUN_GROUP=www-data \
+    APACHE_DOCUMENT_ROOT=/public \
+    TEMPLATE_PHP_INI=production \
+    PHP_EXTENSIONS="amqp bcmath calendar exif gd gettext \
+gmp gnupg igbinary imagick imap intl ldap mcrypt memcached \
+mongodb pcntl pdo_dblib pdo_pgsql pgsql sockets yaml"
 
-COPY --from=composer /usr/bin/composer /usr/bin/composer
+# This just didn't work :(
+# It seems that we cann't set ENV variables dynamically
+# ONBUILD ENV PHP_EXTENSIONS=$(composer check-platform-reqs | grep ^ext- | grep missing | awk '{print $1}' | cut -b 5- | paste -sd " " -)
 
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends \
-    git \
-    curl \
-    unzip \
-    libmemcached-dev \
-    libz-dev \
-    libpq-dev \
-    libjpeg-dev \
-    libpng-dev \
-    libfreetype6-dev \
-    libssl-dev \
-    libmcrypt-dev \
-    gnupg \
-  && curl -sL https://deb.nodesource.com/setup_8.x | bash - \
-  && apt-get install -y nodejs \
-  && rm -rf /var/lib/apt/lists/*
+ONBUILD COPY . /var/www/html
 
-# Install the PHP mcrypt extention
-RUN pecl install mcrypt-1.0.1 && \
-  docker-php-ext-enable mcrypt \
-  # Install the PHP pdo_mysql extention
-  && docker-php-ext-install pdo_mysql \
-  # Install the PHP pdo_pgsql extention
-  && docker-php-ext-install pdo_pgsql \
-  # Install the PHP gd library
-  && docker-php-ext-configure gd \
-    --with-jpeg-dir=/usr/lib \
-    --with-freetype-dir=/usr/include/freetype2 && \
-    docker-php-ext-install gd
+ONBUILD RUN if [ -f /var/www/html/package-lock.json ]; then \
+    echo 'Running npm ci...' && npm ci && npm run prod; \
+  else \
+    echo 'Running npm install...' && npm install && npm run prod; \
+fi
 
-# always run apt update when start and after add new source list, then clean up at end.
-RUN apt-get update -yqq && \
-    pecl channel-update pecl.php.net
-
-###########################################################################
-# ZipArchive:
-###########################################################################
-
-ARG INSTALL_ZIP_ARCHIVE=true
-
-RUN if [ ${INSTALL_ZIP_ARCHIVE} = true ]; then \
-    # Install the zip extension
-    docker-php-ext-install zip \
-;fi
-
-
-# Clean up
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
-    rm /var/log/lastlog /var/log/faillog
-
-
-# Put apache and php.ini configs for Laravel
-COPY ./php.ini /usr/local/etc/php/php.ini
-COPY apache2-laravel.conf /etc/apache2/sites-available/laravel.conf
-RUN a2dissite 000-default.conf && a2ensite laravel.conf && a2enmod rewrite
-
-# Change uid and gid of apache to docker user uid/gid
-RUN usermod -u 1000 www-data && groupmod -g 1000 www-data
-
-WORKDIR /var/www/html
-
-ENV COMPOSER_ALLOW_SUPERUSER=1
-
-ONBUILD COPY . .
-
-# Install composer dependencies
 ONBUILD RUN mkdir -p bootstrap/cache \
- && chgrp -R www-data storage bootstrap/cache \
- && chmod -R ug+rwx storage bootstrap/cache \
- && composer install --no-dev --prefer-dist --optimize-autoloader --ansi
-
-# Install NPM dependencies and build assets
-ONBUILD RUN npm install && npm run production
-
-# HEALTHCHECK --start-period=1m --interval=5m --timeout=3s \
-#   CMD curl -s http://localhost > /dev/null || exit 1
-
-ENV APP_LOG=errorlog
-
-EXPOSE 80
+  && sudo chgrp -R docker storage bootstrap/cache \
+  && sudo chmod -R ug+rwx storage bootstrap/cache \
+  && composer install \
+    --no-dev \
+    --no-interaction \
+    --prefer-dist \
+    --optimize-autoloader \
+    --ansi \
+  && sudo chgrp -R www-data storage bootstrap/cache
