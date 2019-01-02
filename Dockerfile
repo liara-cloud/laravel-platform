@@ -12,6 +12,10 @@ mongodb pcntl pdo_dblib pdo_pgsql pgsql sockets yaml"
 
 USER root
 
+RUN composer global require hirak/prestissimo && \
+    composer global require bamarni/symfony-console-autocomplete && \
+    rm -rf $HOME\.composer
+
 ONBUILD COPY . /var/www/html
 
 ONBUILD RUN if [ -f /var/www/html/package-lock.json ]; then \
