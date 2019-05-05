@@ -1,39 +1,54 @@
-FROM thecodingmachine/php:7.2-v2-apache-node8
+FROM php:7.2-apache
 
-ENV APACHE_DOCUMENT_ROOT=/public \
-    TEMPLATE_PHP_INI=production \
-    PHP_EXTENSIONS="amqp bcmath calendar exif gd gettext \
-gmp gnupg igbinary imagick imap intl ldap mcrypt memcached \
-mongodb pcntl pdo_dblib pdo_pgsql pgsql sockets yaml"
+RUN apt-get update && \
+  apt-get install -y --no-install-recommends vim nano git curl wget unzip cron supervisor
 
-# This just didn't work :(
-# It seems that we cann't set ENV variables dynamically
-# ONBUILD ENV PHP_EXTENSIONS=$(composer check-platform-reqs | grep ^ext- | grep missing | awk '{print $1}' | cut -b 5- | paste -sd " " -)
+ENV COMPOSER_ALLOW_SUPERUSER=1 \
+    ROOT=/var/www/html
 
-USER root
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer &&\
+    chmod +x /usr/local/bin/composer
+
+WORKDIR $ROOT
+
+COPY utils/utils.php /usr/local/bin/utils.php
+COPY utils/generate_conf.php /usr/local/bin/generate_conf.php
+COPY utils/install_selected_extensions.php /usr/local/bin/install_selected_extensions.php
+
+COPY ./exts/core /usr/local/lib/thecodingmachine-php/extensions/current
+
+ENV PHP_EXTENSIONS="bcmath bz2 calendar exif \
+gd gettext gmp igbinary imagick intl \
+pcntl pdo_pgsql pgsql redis \
+shmop soap sysvmsg \
+sysvsem sysvshm wddx xsl opcache zip"
+RUN PHP_EXTENSIONS="$PHP_EXTENSIONS" php /usr/local/bin/install_selected_extensions.php
 
 RUN composer global require hirak/prestissimo && \
-    composer global require bamarni/symfony-console-autocomplete && \
     rm -rf $HOME\.composer
 
-ONBUILD COPY . /var/www/html
+RUN php /usr/local/bin/generate_conf.php | tee /usr/local/etc/php/conf.d/generated_conf.ini > /dev/null
 
-ONBUILD RUN if [ -f /var/www/html/package-lock.json ]; then \
-    echo 'Running npm ci...' && npm ci && npm run prod; \
-  else \
-    echo 'Running npm install...' && npm install && npm run prod; \
-fi
+COPY supervisord.conf /etc/supervisord.conf
 
+ONBUILD COPY . $ROOT
+
+ONBUILD ARG COMPOSER_INSTALL=true
 ONBUILD RUN mkdir -p bootstrap/cache \
-  && sudo chgrp -R www-data storage bootstrap/cache \
-  && sudo chmod -R ug+rwx storage bootstrap/cache \
-  && composer install \
+  && chgrp -R www-data storage bootstrap/cache \
+  && chmod -R ug+rwx storage bootstrap/cache; \
+  if [ "COMPOSER_INSTALL" = "true"]; then composer install \
     --no-dev \
     --no-interaction \
     --prefer-dist \
     --optimize-autoloader \
-    --ansi
+    --ansi \
+    --no-scripts; \
+fi
 
-ENV APACHE_RUN_USER=www-data \
-    APACHE_RUN_GROUP=www-data \
-    COMPOSER_ALLOW_SUPERUSER=1
+ENTRYPOINT cron \
+  && chgrp -R www-data storage public
+  && chmod -R ug+rwx storage public
+  && docker-php-entrypoint
+
+CMD ["apache2-foreground"]
