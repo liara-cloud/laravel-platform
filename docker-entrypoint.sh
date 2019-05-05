@@ -4,6 +4,7 @@ chgrp -R www-data storage public
 chmod -R ug+rwx storage public
 
 if [ ! -z "$__VOLUME_PATH" ]; then
+  echo 'Configuring volume...'
   chgrp -R www-data $__VOLUME_PATH
   chmod -R ug+rwx $__VOLUME_PATH
 fi
