@@ -36,19 +36,27 @@ ONBUILD COPY . $ROOT
 ONBUILD ARG COMPOSER_INSTALL=true
 ONBUILD RUN mkdir -p bootstrap/cache \
   && chgrp -R www-data storage bootstrap/cache \
-  && chmod -R ug+rwx storage bootstrap/cache; \
-  if [ "COMPOSER_INSTALL" = "true"]; then composer install \
+  && chmod -R ug+rwx storage bootstrap/cache \
+  && composer install \
     --no-dev \
     --no-interaction \
     --prefer-dist \
     --optimize-autoloader \
     --ansi \
-    --no-scripts; \
-fi
+    --no-scripts
 
-ENTRYPOINT cron \
-  && chgrp -R www-data storage public
-  && chmod -R ug+rwx storage public
-  && docker-php-entrypoint
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+COPY laravel-optimizer.sh /usr/local/bin/laravel-optimizer.sh
 
+ONBUILD ARG __CRON
+ONBUILD ENV __CRON=${__CRON}
+ONBUILD ARG __VOLUME_PATH
+ONBUILD ARG __LARAVEL_CONFIG_CACHE=false
+ONBUILD ARG __LARAVEL_ROUTE_CACHE=false
+ONBUILD RUN echo "$__CRON" | sed 's/$__SEP/\n/g' > /etc/cron.d/liara_cron \
+  && chmod 0644 /etc/cron.d/liara_cron \
+  && crontab /etc/cron.d/liara_cron \
+  && /usr/local/bin/laravel-optimizer.sh
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["apache2-foreground"]
