@@ -38,6 +38,7 @@ RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-avail
 COPY supervisord.conf /etc/supervisord.conf
 
 ONBUILD COPY . $ROOT
+ONBUILD COPY --from=0 /app/public $ROOT/public
 
 ONBUILD ARG COMPOSER_INSTALL=true
 ONBUILD RUN mkdir -p bootstrap/cache \
