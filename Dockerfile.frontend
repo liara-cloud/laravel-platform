@@ -1,0 +1,22 @@
+FROM node:10
+
+ENV ROOT=/app
+
+WORKDIR $ROOT
+
+ONBUILD COPY package*.json $ROOT/
+
+ONBUILD ARG __LARAVEL_BUILDASSETS=true
+
+ONBUILD RUN if [ "$__LARAVEL_BUILDASSETS" = "true" ]; then \
+  if [ -e /app/package-lock.json ]; \
+    then \
+      echo 'Running npm ci...' && npm ci; \
+    else \
+      echo 'Running npm install' && npm install; \
+  fi \
+fi
+
+ONBUILD COPY . $ROOT
+
+ONBUILD RUN if [ "$__LARAVEL_BUILDASSETS" = "true" ]; then npm run production; fi
