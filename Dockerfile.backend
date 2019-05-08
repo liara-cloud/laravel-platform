@@ -18,9 +18,12 @@ COPY utils/install_selected_extensions.php /usr/local/bin/install_selected_exten
 COPY ./exts/core /usr/local/lib/thecodingmachine-php/extensions/current
 
 ENV PHP_EXTENSIONS="bcmath bz2 calendar exif \
+amqp gnupg imap mcrypt memcached \
+mongodb pdo_dblib sockets yaml \
 gd gettext gmp igbinary imagick intl \
 pcntl pdo_pgsql pgsql redis \
 shmop soap sysvmsg \
+apcu mysqli pdo_mysql \
 sysvsem sysvshm wddx xsl opcache zip"
 RUN PHP_EXTENSIONS="$PHP_EXTENSIONS" php /usr/local/bin/install_selected_extensions.php
 
@@ -40,7 +43,6 @@ COPY supervisord.conf /etc/supervisord.conf
 ONBUILD COPY . $ROOT
 ONBUILD COPY --from=0 /app/public $ROOT/public
 
-ONBUILD ARG COMPOSER_INSTALL=true
 ONBUILD RUN mkdir -p bootstrap/cache \
   && chgrp -R www-data storage bootstrap/cache \
   && chmod -R ug+rwx storage bootstrap/cache \
