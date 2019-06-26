@@ -11,6 +11,14 @@ if [ ! -z "$__VOLUME_PATH" ]; then
   chmod -R ug+rwx $__VOLUME_PATH
 fi
 
+if [ "$__LARAVEL_CONFIGCACHE" = "true" ]; then
+  php artisan config:cache
+fi
+
+if [ "$__LARAVEL_ROUTECACHE" = "true" ]; then
+  php artisan route:cache
+fi
+
 php artisan package:discover --ansi
 
 if [ ! -z "$__CRON" ]; then cron; fi

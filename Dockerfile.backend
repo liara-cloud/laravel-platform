@@ -1,7 +1,7 @@
 FROM php:7.2-apache
 
 RUN apt-get update && \
-  apt-get install -y --no-install-recommends vim nano git curl wget unzip cron supervisor
+  apt-get install -y --no-install-recommends vim nano git curl wget unzip cron supervisor python3
 
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
     ROOT=/var/www/html
@@ -19,7 +19,7 @@ COPY ./exts/core /usr/local/lib/thecodingmachine-php/extensions/current
 
 ENV PHP_EXTENSIONS="bcmath bz2 calendar exif \
 amqp gnupg imap mcrypt memcached \
-mongodb pdo_dblib sockets yaml \
+mongodb sockets yaml \
 gd gettext gmp igbinary imagick intl \
 pcntl pdo_pgsql pgsql redis \
 shmop soap sysvmsg \
@@ -54,6 +54,7 @@ ONBUILD RUN mkdir -p bootstrap/cache \
     --ansi \
     --no-scripts
 
+COPY load_profile.py /usr/local/bin/load_profile.py
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 COPY config-laravel.sh /usr/local/bin/config-laravel.sh
 
@@ -63,8 +64,11 @@ ONBUILD RUN echo 'Reading config arguments...'
 ONBUILD ARG __LARAVEL_CONFIGCACHE=false
 ONBUILD ARG __LARAVEL_ROUTECACHE=false
 ONBUILD ENV __CRON=${__CRON} \
-  __VOLUME_PATH=${__VOLUME_PATH}
-ONBUILD RUN echo "$__CRON" | sed 's/$__SEP/\n/g' > /etc/cron.d/liara_cron \
+  __VOLUME_PATH=${__VOLUME_PATH} \
+  __LARAVEL_CONFIGCACHE=${__LARAVEL_CONFIGCACHE} \
+  __LARAVEL_ROUTECACHE=${__LARAVEL_ROUTECACHE}
+ONBUILD RUN printenv | sed 's/^\(.*\)$/export "\1"/g' > /etc/load_envs.sh \
+  && python3 /usr/local/bin/load_profile.py \
   && chmod 0644 /etc/cron.d/liara_cron \
   && crontab /etc/cron.d/liara_cron \
   && rm -rf $ROOT/bootstrap/cache/* \
