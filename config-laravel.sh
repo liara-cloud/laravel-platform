@@ -11,7 +11,7 @@ if [ -f $ROOT/supervisor.conf ]; then
   mv $ROOT/supervisor.conf /etc/supervisord.d
 fi
 
-if [ -f $ROOT/php.ini ]; then
+if [ -f $ROOT/liara_php.ini ]; then
   echo 'Applying liara_php.ini...'
   mkdir -p /usr/local/etc/php/conf.d
   mv $ROOT/liara_php.ini /usr/local/etc/php/conf.d
