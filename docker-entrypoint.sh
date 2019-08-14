@@ -5,6 +5,10 @@ set -e
 chgrp -R www-data storage public
 chmod -R ug+rwx storage public
 
+python3 /usr/local/bin/load_profile.py
+chmod 0644 /etc/cron.d/liara_cron
+crontab /etc/cron.d/liara_cron
+
 if [ ! -z "$__VOLUME_PATH" ]; then
   echo 'Configuring volume...'
   chgrp -R www-data $__VOLUME_PATH

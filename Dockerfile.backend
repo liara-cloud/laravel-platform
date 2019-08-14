@@ -69,11 +69,7 @@ ONBUILD ENV __CRON=${__CRON} \
   __LARAVEL_CONFIGCACHE=${__LARAVEL_CONFIGCACHE} \
   __LARAVEL_ROUTECACHE=${__LARAVEL_ROUTECACHE} \
   __LARAVEL_POSTBUILDCOMMANDS=${__LARAVEL_POSTBUILDCOMMANDS}
-ONBUILD RUN printenv | sed 's/^\(.*\)$/export "\1"/g' > /etc/load_envs.sh \
-  && python3 /usr/local/bin/load_profile.py \
-  && chmod 0644 /etc/cron.d/liara_cron \
-  && crontab /etc/cron.d/liara_cron \
-  && rm -rf $ROOT/bootstrap/cache/* \
+ONBUILD RUN rm -rf $ROOT/bootstrap/cache/* \
   && /usr/local/bin/config-laravel.sh
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
