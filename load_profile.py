@@ -26,7 +26,7 @@ def setupPostBuildCommands():
 
   for i in range(len(commands)):
     print('> post-build: ' + commands[i])
-    result = subprocess.run(commands[i].split(' '), stdout=subprocess.PIPE, shell=True, universal_newlines=True)
+    result = subprocess.run(commands[i], stdout=subprocess.PIPE, shell=True, universal_newlines=True)
 
     print(result.stdout)
 
