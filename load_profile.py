@@ -12,6 +12,7 @@ def setupCron():
   envs = cron.split('$__SEP') if cron else []
 
   cron_file.write('PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n')
+  cron_file.write('ROOT=/var/www/html\n')
 
   for i in range(len(envs)):
     cron_file.write(envs[i] + '\n')
