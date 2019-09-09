@@ -48,6 +48,9 @@ RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-avail
   && echo "ServerName localhost" > /etc/apache2/conf-available/servername.conf \
   && a2enconf servername
 
+ENV PYTHONIOENCODING=utf-8 \
+    LANG=C.UTF-8
+
 COPY supervisord.conf /etc/supervisord.conf
 
 ONBUILD COPY . $ROOT
