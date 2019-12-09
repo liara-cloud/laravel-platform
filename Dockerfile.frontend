@@ -24,7 +24,7 @@ fi
 ONBUILD COPY . $ROOT
 
 ONBUILD RUN if [ "$__LARAVEL_BUILDASSETS" = "true" ]; then \
-  set -e && echo 'Reading build arguments...' && for s in $(echo $__BUILD_ENVS | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]" ); do \
+  set -e && echo 'Reading build arguments...' && for s in $(echo "$__BUILD_ENVS" | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]" ); do \
     export $s; \
   done && \
   npm run production; \
