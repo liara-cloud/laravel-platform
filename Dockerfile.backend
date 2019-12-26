@@ -49,14 +49,15 @@ RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-avail
   && a2enconf servername
 
 ENV PYTHONIOENCODING=utf-8 \
-    LANG=C.UTF-8
+    LANG=C.UTF-8 \
+    APP_ENV=build
 
 COPY supervisord.conf /etc/supervisord.conf
 
 ONBUILD COPY . $ROOT
 ONBUILD COPY --from=0 /app/public $ROOT/public
 
-ONBUILD RUN mkdir -p bootstrap/cache \
+ONBUILD RUN mkdir -p storage bootstrap/cache \
   && chgrp -R www-data storage bootstrap/cache \
   && chmod -R ug+rwx storage bootstrap/cache \
   && composer install \
@@ -84,6 +85,8 @@ ONBUILD ENV __CRON=${__CRON} \
   __LARAVEL_POSTBUILDCOMMANDS=${__LARAVEL_POSTBUILDCOMMANDS}
 ONBUILD RUN rm -rf $ROOT/bootstrap/cache/* \
   && /usr/local/bin/config-laravel.sh
+
+ONBUILD ENV APP_ENV=production
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["apache2-foreground"]
