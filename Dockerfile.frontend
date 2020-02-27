@@ -4,6 +4,10 @@ ENV ROOT=/app
 
 WORKDIR $ROOT
 
+# Just to prevent build warning
+ONBUILD ARG __BUILD_ENVS
+ONBUILD ENV __BUILD_ENVS=${__BUILD_ENVS}
+
 ONBUILD COPY package*.json $ROOT/
 
 ONBUILD ARG __LARAVEL_BUILDASSETS=true
