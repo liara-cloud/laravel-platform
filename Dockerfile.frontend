@@ -4,10 +4,6 @@ ENV ROOT=/app
 
 WORKDIR $ROOT
 
-RUN cd /bin && wget "http://stedolan.github.io/jq/download/linux64/jq" && chmod 755 jq
-
-ONBUILD ARG __BUILD_ENVS
-
 ONBUILD COPY package*.json $ROOT/
 
 ONBUILD ARG __LARAVEL_BUILDASSETS=true
@@ -23,9 +19,4 @@ fi
 
 ONBUILD COPY . $ROOT
 
-ONBUILD RUN if [ "$__LARAVEL_BUILDASSETS" = "true" ]; then \
-  set -e && echo 'Reading build arguments...' && for s in $(echo "$__BUILD_ENVS" | jq -r "to_entries|map(\"\(.key)=\(.value|tostring)\")|.[]" ); do \
-    export $s; \
-  done && \
-  npm run production; \
-fi
+ONBUILD RUN if [ "$__LARAVEL_BUILDASSETS" = "true" ]; then npm run production; fi
