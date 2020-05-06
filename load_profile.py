@@ -85,7 +85,6 @@ def createDotEnvFile():
 
 def chownDiskMountpoints():
   disks = json.loads(os.getenv('__DISKS') or '[]')
-  print(disks)
   for disk in disks:
     # FIXME: Remember that an attacker can interpolate disk.mountTo and run any command he wants.
     # In our new version of this platform, we have to fix this by validation any input given by user.
