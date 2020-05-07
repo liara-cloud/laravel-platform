@@ -12,7 +12,7 @@ RUN apt-get update && \
     npm install -g npm
 
 RUN apt-get update && \
-  apt-get install -y --no-install-recommends vim nano git curl wget unzip cron supervisor python3
+  apt-get install -y --no-install-recommends vim nano git curl wget unzip cron supervisor python3 ffmpeg
 
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
     ROOT=/var/www/html
@@ -61,7 +61,8 @@ RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-avail
 
 ENV PYTHONIOENCODING=utf-8 \
     LANG=C.UTF-8 \
-    APP_ENV=build
+    APP_ENV=build \
+    FFPROBE_PATH=/usr/bin/ffprobe
 
 COPY supervisord.conf /etc/supervisord.conf
 
