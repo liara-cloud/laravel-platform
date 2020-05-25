@@ -1,9 +1,15 @@
 #!/bin/bash
 
-set -e
+composer dump-autoload --ansi
+
+if grep -q '"post-install-cmd"' composer.json; then
+  composer run-script --no-dev post-install-cmd --ansi
+fi
 
 php artisan view:clear
 php artisan cache:clear
+
+set -e
 
 if [ -f $ROOT/supervisor.conf ]; then
   echo 'Applying supervisor.conf...'
