@@ -12,7 +12,7 @@ RUN apt-get update && \
     npm install -g npm
 
 RUN apt-get update && \
-  apt-get install -y --no-install-recommends vim nano git curl wget unzip cron supervisor python3 ffmpeg
+  apt-get install -y --no-install-recommends vim nano git curl wget unzip cron supervisor python3 ffmpeg mysql-client
 
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
     ROOT=/var/www/html
