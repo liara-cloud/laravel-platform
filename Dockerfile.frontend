@@ -4,6 +4,8 @@ ENV ROOT=/app
 
 WORKDIR $ROOT
 
+RUN apt-get update && apt-get install -y --no-install-recommends git
+
 # Just to prevent build warning
 ONBUILD ARG __BUILD_ENVS
 ONBUILD ENV __BUILD_ENVS=${__BUILD_ENVS}
