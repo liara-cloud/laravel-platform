@@ -15,10 +15,13 @@ RUN apt-get update && \
   apt-get install -y --no-install-recommends vim nano git curl wget unzip cron supervisor python3 ffmpeg mysql-client
 
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
-    ROOT=/var/www/html
+    ROOT=/var/www/html \
+    SUPERCRONIC_OPTIONS="-debug -split-logs"
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer &&\
     chmod +x /usr/local/bin/composer
+
+COPY --from=liaracloud/supercronic:0.1.9 /usr/local/bin/supercronic /usr/local/bin/supercronic
 
 WORKDIR $ROOT
 
@@ -28,14 +31,15 @@ COPY utils/install_selected_extensions.php /usr/local/bin/install_selected_exten
 
 COPY ./exts/core /usr/local/lib/thecodingmachine-php/extensions/current
 
-ENV PHP_EXTENSIONS="bcmath bz2 calendar exif \
-amqp gnupg imap mcrypt memcached \
-mongodb sockets yaml \
-gd gettext gmp igbinary imagick intl \
-pcntl pdo_pgsql pgsql redis \
-shmop soap sysvmsg \
-apcu mysqli pdo_mysql \
-sysvsem sysvshm wddx xsl opcache zip"
+# ENV PHP_EXTENSIONS="bcmath bz2 calendar exif \
+# amqp gnupg imap mcrypt memcached \
+# mongodb sockets yaml \
+# gd gettext gmp igbinary imagick intl \
+# pcntl pdo_pgsql pgsql redis \
+# shmop soap sysvmsg \
+# apcu mysqli pdo_mysql \
+# sysvsem sysvshm wddx xsl opcache zip"
+ENV PHP_EXTENSIONS="bcmath"
 RUN PHP_EXTENSIONS="$PHP_EXTENSIONS" php /usr/local/bin/install_selected_extensions.php
 
 RUN composer global require hirak/prestissimo && \
@@ -86,12 +90,14 @@ COPY config-laravel.sh /usr/local/bin/config-laravel.sh
 
 ONBUILD ARG __CRON
 ONBUILD ARG __VOLUME_PATH
+# ONBUILD ARG __DISKS
 ONBUILD RUN echo 'Reading config arguments...'
 ONBUILD ARG __LARAVEL_CONFIGCACHE=false
 ONBUILD ARG __LARAVEL_ROUTECACHE=false
 ONBUILD ARG __LARAVEL_POSTBUILDCOMMANDS
 ONBUILD ENV __CRON=${__CRON} \
   __VOLUME_PATH=${__VOLUME_PATH} \
+  # __DISKS=${__DISKS} \
   __LARAVEL_CONFIGCACHE=${__LARAVEL_CONFIGCACHE} \
   __LARAVEL_ROUTECACHE=${__LARAVEL_ROUTECACHE} \
   __LARAVEL_POSTBUILDCOMMANDS=${__LARAVEL_POSTBUILDCOMMANDS}

@@ -1,13 +1,30 @@
 #!/bin/bash
 
+# Is storage writable? In other words, is a disk mounted to the storage directory or its parents?
+df | grep -q '/var/www/html/storage$' || df | grep -q '/var/www/html$' || df | grep -q '/var/www$' || df | grep -q '/var$'
+if [[ $? == '0' ]]; then
+  echo '---------------- disk exists.'
+  # Is symlink?
+  if [[ -L "/var/www/html/storage/framework" ]]; then
+    echo '------------------- Removing symlink'
+    rm /var/www/html/storage/framework
+    mkdir /var/www/html/storage/framework
+    cp -rp /var/www/.laravel-framework/* /var/www/html/storage/framework
+  fi
+else
+  mkdir -p /tmp/.laravel-framework
+  chown www-data:www-data /tmp/.laravel-framework
+  if [[ -z "$(ls -A /tmp/.laravel-framework)" ]]; then
+    echo '----------------- copying .laravel-framework'
+    cp -rp /var/www/.laravel-framework/* /tmp/.laravel-framework
+  fi
+fi
+
 set -e
 
-chgrp -R www-data storage public
-chmod -R ug+rwx storage public
+mkdir -p /run/liara
 
 python3 /usr/local/bin/load_profile.py
-chmod 0644 /etc/cron.d/liara_cron
-crontab /etc/cron.d/liara_cron
 
 if [ ! -z "$__VOLUME_PATH" ]; then
   echo 'Configuring volume...'
@@ -15,19 +32,8 @@ if [ ! -z "$__VOLUME_PATH" ]; then
   chmod -R ug+rwx $__VOLUME_PATH
 fi
 
-set +e
-
-if [ "$__LARAVEL_CONFIGCACHE" = "true" ]; then
-  php artisan config:cache
-fi
-
-if [ "$__LARAVEL_ROUTECACHE" = "true" ]; then
-  php artisan route:cache
-fi
-
-set -e
-
-if [ ! -z "$__CRON" ]; then cron; fi
+# Start cron service
+if [ ! -z "$__CRON" ]; then supercronic ${SUPERCRONIC_OPTIONS} /run/liara/crontab; fi
 
 if [ -f /etc/supervisord.d/supervisor.conf ]; then
   echo 'Starting supervisor...'

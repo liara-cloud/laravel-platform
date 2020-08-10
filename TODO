@@ -1,0 +1,7 @@
+[] Document this: Users should create storage link in their local environment: php artisan storage:link --relative
+[] Test cron
+[] Test supervisor
+[] Test php.ini
+[] Test config and route cache
+[] Test multiple disks file permissions (Restart app to ensure permissions are persistent between restarts)
+[] Support Lumen
