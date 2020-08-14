@@ -33,11 +33,14 @@ if [ ! -z "$__VOLUME_PATH" ]; then
 fi
 
 # Start cron service
-if [ ! -z "$__CRON" ]; then supercronic ${SUPERCRONIC_OPTIONS} /run/liara/crontab; fi
+if [ ! -z "$__CRON" ]; then
+  echo '[CRON] Starting...';
+  supercronic ${SUPERCRONIC_OPTIONS} /run/liara/crontab &
+fi
 
 if [ -f /etc/supervisord.d/supervisor.conf ]; then
-  echo 'Starting supervisor...'
-  supervisord -c /etc/supervisord.conf
+  echo '[SUPERVISOR] Starting...';
+  supervisord -c /etc/supervisord.conf &
 fi
 
 exec "docker-php-entrypoint" "$@";
