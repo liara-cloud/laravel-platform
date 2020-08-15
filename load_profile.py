@@ -6,10 +6,10 @@ def setupCron():
   cron = os.getenv('__CRON') or '[]'
   crontab = open('/run/liara/crontab', 'w+')
 
-  if '$__SEP' in cron:
-    envs = cron.split('$__SEP')
-  else:
+  try:
     envs = json.loads(cron)
+  except ValueError:
+    envs = cron.split('$__SEP')
 
   for i in range(len(envs)):
     crontab.write(envs[i] + '\n')
@@ -19,10 +19,10 @@ def setupCron():
 def runPostBuildCommands():
   postBuildCommands = os.getenv('__LARAVEL_POSTBUILDCOMMANDS') or '[]'
 
-  if '$__SEP' in postBuildCommands:
-    commands = postBuildCommands.split('$__SEP')
-  else:
+  try:
     commands = json.loads(postBuildCommands)
+  except ValueError:
+    commands = postBuildCommands.split('$__SEP')
 
   for i in range(len(commands)):
     print('> post-build: ' + commands[i])
