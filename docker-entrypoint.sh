@@ -20,6 +20,23 @@ else
   fi
 fi
 
+# Ensure bootstrap/cache points to a real directory
+mkdir -p /tmp/.laravel-bootstrap-cache
+
+# BEGIN: Laravel optimization
+# We need to run this command inside entrypoint because access to runtime environment variables is required.
+# If we run this command during the build phase, the app wont have access to any of its envs.
+if [ "$__LARAVEL_CONFIGCACHE" = "true" ]; then
+  php artisan config:cache
+fi
+
+if [ "$__LARAVEL_ROUTECACHE" = "true" ]; then
+  php artisan route:cache
+fi
+
+chown -R www-data:www-data /tmp/.laravel-bootstrap-cache
+# END: Laravel optimization
+
 set -e
 
 mkdir -p /run/liara
@@ -40,7 +57,7 @@ fi
 
 if [ -f /etc/supervisord.d/supervisor.conf ]; then
   echo '[SUPERVISOR] Starting...';
-  supervisord -c /etc/supervisord.conf &
+  supervisord -c /etc/supervisord.conf
 fi
 
 echo '[APACHE] Starting...';

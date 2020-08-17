@@ -104,8 +104,7 @@ ONBUILD ENV __CRON=${__CRON} \
   __LARAVEL_ROUTECACHE=${__LARAVEL_ROUTECACHE} \
   __LARAVEL_POSTBUILDCOMMANDS=${__LARAVEL_POSTBUILDCOMMANDS} \
   TZ=${__LARAVEL_TIMEZONE}
-ONBUILD RUN rm -rf $ROOT/bootstrap/cache/* \
-  && /usr/local/bin/config-laravel.sh \
+ONBUILD RUN /usr/local/bin/config-laravel.sh \
   && echo 'Configuring timezone:' $TZ && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
   echo $TZ > /etc/timezonero
 
