@@ -9,6 +9,9 @@ fi
 php artisan view:clear
 php artisan cache:clear
 
+echo 'Creating storage symbolic links...'
+php artisan storage:link
+
 set -e
 
 if [ -f $ROOT/supervisor.conf ]; then
