@@ -3,6 +3,6 @@
 set -e
 export EXTENSION=intl
 export DEV_DEPENDENCIES="libicu-dev"
-export DEPENDENCIES="libicu57"
+export CONFIGURE_OPTIONS=" "
 
 ../docker-install.sh
