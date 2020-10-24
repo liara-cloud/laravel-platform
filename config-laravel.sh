@@ -9,19 +9,19 @@ fi
 php artisan view:clear
 php artisan cache:clear
 
-echo 'Creating storage symbolic links...'
+echo '> Creating storage symbolic links...'
 php artisan storage:link
 
 set -e
 
 if [ -f $ROOT/supervisor.conf ]; then
-  echo 'Applying supervisor.conf...'
+  echo '> Applying supervisor.conf...'
   mkdir -p /etc/supervisord.d
   mv $ROOT/supervisor.conf /etc/supervisord.d
 fi
 
 if [ -f $ROOT/liara_php.ini ]; then
-  echo 'Applying liara_php.ini...'
+  echo '> Applying liara_php.ini...'
 
   # Files in the conf.d are loaded in alphabetical order,
   # so naming a file 99-overrides.ini (for example) will cause it to be loaded last.

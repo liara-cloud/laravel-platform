@@ -1,0 +1,20 @@
+[] liara.json => laravel.storageLink: true
+  We then generate it with a bash script.
+
+[] mcrypt only in PHP 7.2
+[] zip differs between 7.2 and 7.3
+[] gd options differs in 7.4
+php 7.4: (works in 7.2 and 7.3)
++ '[' -n '--with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-xpm-dir=/usr/include/ --with-webp-dir=/usr/include/' ']'
++ docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ --with-xpm-dir=/usr/include/ --with-webp-dir=/usr/include/
+Configuring for:
+PHP Api Version:         20190902
+Zend Module Api No:      20190902
+Zend Extension Api No:   320190902
+configure: error: unrecognized options: --with-freetype-dir, --with-jpeg-dir, --with-xpm-dir, --with-webp-dir
+The command '/bin/sh -c apt-get update && php /usr/local/bin/install_selected_extensions.php' returned a non-zero code: 1
+
+[] Imagick
+https://webapplicationconsultant.com/docker/how-to-install-imagick-in-php-docker/
+
+# TODO: https://github.com/wodby/php/tree/master/7/orig
