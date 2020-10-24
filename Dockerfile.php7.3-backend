@@ -1,4 +1,4 @@
-FROM php:7.3-apache-stretch
+FROM php:7.3-apache
 
 # Install Node.js 12
 RUN apt-get update && \
@@ -13,7 +13,7 @@ RUN apt-get update && \
     # Upgrade npm
     npm install -g npm \
     # Install packages
-    && apt-get install -y --no-install-recommends vim nano git curl wget unzip supervisor python3 ffmpeg mysql-client
+    && apt-get install -y --no-install-recommends vim nano git curl wget unzip supervisor python3 ffmpeg mariadb-client
 
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
     ROOT=/var/www/html \
@@ -42,9 +42,6 @@ RUN PHP_EXTENSIONS="$PHP_EXTENSIONS" php /usr/local/bin/install_selected_extensi
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
   && chmod +x /usr/local/bin/composer \
-  # Install prestissimo to make Composer faster
-  && composer global require hirak/prestissimo \
-  && rm -rf $HOME\.composer \
   # Generate a php.ini file for extensions
   && php /usr/local/bin/generate_conf.php | tee /usr/local/etc/php/conf.d/generated_conf.ini > /dev/null \
   # Configure Apache
