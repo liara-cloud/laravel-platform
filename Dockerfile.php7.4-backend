@@ -1,22 +1,16 @@
 FROM liaracloud/php:7.4-apache-node12
 
-# Install packages
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends vim nano git curl wget unzip supervisor python3 ffmpeg mariadb-client
-
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
     ROOT=/var/www/html \
     APACHE_DOCUMENT_ROOT=/var/www/html/public \
-    TEMPLATE_PHP_INI=production \
     PYTHONIOENCODING=utf-8 \
     LANG=C.UTF-8 \
     APP_ENV=build \
-    FFPROBE_PATH=/usr/bin/ffprobe \
-    PHP_EXTENSIONS="bcmath bz2 calendar exif \
-    amqp gnupg imap sockets yaml \
-    gd gettext gmp igbinary imagick intl \
-    mongodb msgpack memcached redis pdo_dblib mysqli pdo_mysql pdo_pgsql pgsql pdo_sqlite sqlite3 \
-    shmop soap sysvmsg apcu sysvsem sysvshm xsl opcache zip"
+    FFPROBE_PATH=/usr/bin/ffprobe
+
+# Install packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends vim nano git curl wget unzip supervisor python3 ffmpeg mariadb-client
 
 WORKDIR $ROOT
 

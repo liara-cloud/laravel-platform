@@ -3,25 +3,14 @@ FROM liaracloud/php:7.2-apache-node12
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
     ROOT=/var/www/html \
     APACHE_DOCUMENT_ROOT=/var/www/html/public \
-    TEMPLATE_PHP_INI=production \
     PYTHONIOENCODING=utf-8 \
     LANG=C.UTF-8 \
     APP_ENV=build \
-    FFPROBE_PATH=/usr/bin/ffprobe \
-    PHP_EXTENSIONS="bcmath bz2 calendar exif \
-    amqp gnupg imap sockets yaml \
-    gd gettext gmp igbinary imagick intl \
-    mongodb msgpack memcached redis pdo_dblib mysqli pdo_mysql pdo_pgsql pgsql pdo_sqlite sqlite3 \
-    shmop soap sysvmsg apcu sysvsem sysvshm xsl opcache zip"
+    FFPROBE_PATH=/usr/bin/ffprobe
 
 # Install packages
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends vim nano git curl wget unzip supervisor python3 ffmpeg mariadb-client && \
-    # Enable extensions
-    php /usr/local/bin/generate_conf.php > /etc/php/${PHP_VERSION}/mods-available/generated_conf.ini && \
-    php /usr/local/bin/setup_extensions.php | bash && \
-    php /usr/local/bin/enable_apache_mods.php | bash && \
-    ln -sf /usr/lib/php/${PHP_VERSION}/php.ini-${TEMPLATE_PHP_INI} /etc/php/${PHP_VERSION}/apache2/php.ini
+    apt-get install -y --no-install-recommends vim nano git curl wget unzip supervisor python3 ffmpeg mariadb-client
 
 WORKDIR $ROOT
 
