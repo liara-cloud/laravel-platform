@@ -1,0 +1,60 @@
+FROM liaracloud/php:7.3-apache-node12
+
+ENV COMPOSER_ALLOW_SUPERUSER=1 \
+    ROOT=/var/www/html \
+    APACHE_DOCUMENT_ROOT=/var/www/html/public \
+    PYTHONIOENCODING=utf-8 \
+    LANG=C.UTF-8 \
+    APP_ENV=build \
+    FFPROBE_PATH=/usr/bin/ffprobe
+
+# Install packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends vim nano git curl wget unzip supervisor python3 ffmpeg mariadb-client
+
+WORKDIR $ROOT
+
+COPY supervisord.conf /etc/supervisord.conf
+
+ONBUILD COPY . $ROOT
+ONBUILD COPY --from=0 /app/public $ROOT/public
+
+ONBUILD RUN mkdir -p storage bootstrap/cache \
+  && chgrp -R www-data storage bootstrap/cache \
+  && chmod -R ug+rwx storage bootstrap/cache \
+  && composer install \
+    --no-dev \
+    --no-interaction \
+    --prefer-dist \
+    --optimize-autoloader \
+    --ansi \
+    --no-scripts
+
+COPY load_profile.py /usr/local/bin/load_profile.py
+COPY custom-entrypoint.sh /usr/local/bin/custom-entrypoint.sh
+COPY config-laravel.sh /usr/local/bin/config-laravel.sh
+COPY default_php.ini /etc/php/${PHP_VERSION}/cli/conf.d/00-default_php.ini
+
+ONBUILD ARG __CRON
+ONBUILD ARG __VOLUME_PATH
+ONBUILD ARG __DISKS
+ONBUILD RUN echo '> Reading config arguments...'
+ONBUILD ARG __LARAVEL_TIMEZONE=Asia/Tehran
+ONBUILD ARG __LARAVEL_CONFIGCACHE=false
+ONBUILD ARG __LARAVEL_ROUTECACHE=false
+ONBUILD ARG __LARAVEL_POSTBUILDCOMMANDS
+ONBUILD ENV __CRON=${__CRON} \
+  __VOLUME_PATH=${__VOLUME_PATH} \
+  __DISKS=${__DISKS} \
+  __LARAVEL_CONFIGCACHE=${__LARAVEL_CONFIGCACHE} \
+  __LARAVEL_ROUTECACHE=${__LARAVEL_ROUTECACHE} \
+  __LARAVEL_POSTBUILDCOMMANDS=${__LARAVEL_POSTBUILDCOMMANDS} \
+  TZ=${__LARAVEL_TIMEZONE}
+ONBUILD RUN /usr/local/bin/config-laravel.sh \
+  && echo '> Configuring timezone:' $TZ && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
+  echo $TZ > /etc/timezonero
+
+ONBUILD ENV APP_ENV=production
+
+ENTRYPOINT ["/usr/local/bin/custom-entrypoint.sh"]
+CMD ["apache2-foreground"]
