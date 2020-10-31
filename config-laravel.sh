@@ -7,6 +7,9 @@ if grep -q '"post-install-cmd"' composer.json; then
 fi
 
 php artisan view:clear
+
+# Fixes https://stackoverflow.com/a/52330607
+mkdir -p storage/framework/cache/data
 php artisan cache:clear
 
 echo '> Creating storage symbolic links...'
