@@ -34,6 +34,7 @@ COPY load_profile.py /usr/local/bin/load_profile.py
 COPY custom-entrypoint.sh /usr/local/bin/custom-entrypoint.sh
 COPY config-laravel.sh /usr/local/bin/config-laravel.sh
 COPY default_php.ini /etc/php/${PHP_VERSION}/cli/conf.d/00-default_php.ini
+COPY default_php.ini /etc/php/${PHP_VERSION}/apache2/conf.d/00-default_php.ini
 
 ONBUILD ARG __CRON
 ONBUILD ARG __VOLUME_PATH
