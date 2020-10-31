@@ -29,7 +29,9 @@ if [ -f $ROOT/liara_php.ini ]; then
   # Files in the conf.d are loaded in alphabetical order,
   # so naming a file 99-overrides.ini (for example) will cause it to be loaded last.
   # Settings set in that file will override settings set in the default php.ini.
-  mv $ROOT/liara_php.ini /etc/php/${PHP_VERSION}/cli/conf.d/99-liara_php.ini
+  cp $ROOT/liara_php.ini /etc/php/${PHP_VERSION}/cli/conf.d/99-liara_php.ini
+  cp $ROOT/liara_php.ini /etc/php/${PHP_VERSION}/apache2/conf.d/99-liara_php.ini
+  rm $ROOT/liara_php.ini
 fi
 
 chgrp -R www-data storage public
