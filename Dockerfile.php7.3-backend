@@ -6,7 +6,8 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
     PYTHONIOENCODING=utf-8 \
     LANG=C.UTF-8 \
     APP_ENV=build \
-    FFPROBE_PATH=/usr/bin/ffprobe
+    FFPROBE_PATH=/usr/bin/ffprobe \
+    XDG_CONFIG_HOME=/tmp/tinker
 
 # Install packages
 RUN apt-get update && \
